@@ -1,4 +1,4 @@
-=# 🚆 Railway Reservation System – Database Schema (Oracle SQL)
+# 🚆 Railway Reservation System – Database Schema (Oracle SQL)
 
 This repository contains the SQL schema for a Railway Reservation System designed using **Oracle SQL**. The structure is built to support functionalities like passenger bookings, train listings, seat availability, and travel routes.
 

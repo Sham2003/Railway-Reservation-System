@@ -1,0 +1,328 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
+ */
+package com.miniproject.railwaysystem;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
+/**
+ *
+ * @author Sham
+ * Background ChennaiCentral.jpg
+ */
+public class ShowTicket extends javax.swing.JFrame {
+    Connection conn;
+    DefaultTableModel PModel;
+    private String pnr;
+    private String pcount;
+    private String total;
+    private String trainName;
+    private String boardStat;
+    private String destStat;
+    private String destTime;
+    private String journeyDate;
+    private String className;
+    private String boardTime;
+    /**
+     * Creates new form ShowTicket
+     * @param conn
+     * @param pnr
+     */
+    public ShowTicket(Connection conn,int pnr) {
+        this.conn = conn;
+        this.pnr = String.valueOf(pnr);
+        initTicket(pnr);
+        initComponents();
+    }
+    private void fallBack()
+    {
+        JOptionPane.showMessageDialog(this,"SQL ERROR");
+        new Search(this.conn).setVisible(true);
+        this.dispose();
+    }
+    
+    public static String extractTime(String dateTimeString) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+        try {
+            Date date = dateFormat.parse(dateTimeString);
+            SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+            return timeFormat.format(date);
+        } catch (ParseException e) {
+            
+        }
+        String time = dateTimeString.split(" ")[1];
+        return time.substring(0,time.length()-1);
+    }
+    
+    private void initTicket(int pnr) {
+        try {
+            String sql = """
+                        SELECT tic.trainid||'-'||t3.trainname TRAIN,tic.source||'-'||s1.stationname BOARDING ,t1.departure BTIME,tic.destination||'-'||s2.stationname DESTINATION,t2.arrival as DTIME,tic.totalamt TOTAL,tic.class CLASS,tic.totaltickets,tic.dateofjourney
+                           FROM Stations s1 
+                           JOIN trainStations t1 ON t1.stationid = s1.stationid
+                           JOIN trainStations t2 ON t1.trainid = t2.trainid
+                           JOIN Stations s2 ON t2.stationid = s2.stationid
+                           JOIN trains t3 ON t1.trainid = t3.trainid 
+                           JOIN ticket tic ON tic.trainid = t1.trainid
+                           WHERE t1.stationid = tic.source
+                           AND t2.stationid = tic.destination
+                           AND t1.trainid = tic.trainid
+                           AND tic.pnr= ? """;
+            PreparedStatement stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, pnr);
+            stmt.execute();
+            ResultSet rs = stmt.getResultSet();
+            if(rs.next())
+            {
+                this.trainName = rs.getString(1);
+                this.boardStat = rs.getString(2);
+                this.boardTime = extractTime(rs.getString(3));
+                this.destStat = rs.getString(4);
+                this.destTime = extractTime(rs.getString(5));
+                this.total = rs.getString(6);
+                this.className = rs.getString(7);
+                this.pcount = rs.getString(8);
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                this.journeyDate = sdf.format(rs.getDate(9));
+            }
+            else
+            {
+                fallBack();
+            }
+            sql = """
+                  select ps.passengerid,ps.name,ps.age,ps.gender,ps.phone,ps.zipcode 
+                    from passengers ps
+                    join passengerTickets pt
+                    on ps.passengerid = pt.passengerid
+                    where pnr = ? """;
+            stmt = this.conn.prepareStatement(sql);
+            stmt.setInt(1, pnr);
+            stmt.execute();
+            this.PModel = new DefaultTableModel(new Object[]{"PID","Name","Age","Gender","Phone","Zipcode"},0);
+            
+            rs = stmt.getResultSet();
+            while(rs.next())
+            {
+                Object arr[] = {rs.getObject(1),rs.getObject(2),rs.getObject(3),rs.getObject(4),rs.getObject(5),rs.getObject(6)};
+                PModel.addRow(arr);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(ShowTicket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        ticInterface = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        PTable = new javax.swing.JTable();
+        noTickets = new javax.swing.JLabel();
+        totalAmt = new javax.swing.JLabel();
+        TrainLabel = new com.miniproject.railwaysystem.Widgets.TextField();
+        BStatLabel = new com.miniproject.railwaysystem.Widgets.TextField();
+        DestStatLabel = new com.miniproject.railwaysystem.Widgets.TextField();
+        JDateLabel = new com.miniproject.railwaysystem.Widgets.TextField();
+        ClassLabel = new com.miniproject.railwaysystem.Widgets.TextField();
+        BTimeLabel = new com.miniproject.railwaysystem.Widgets.TextField();
+        DestTimeStat = new com.miniproject.railwaysystem.Widgets.TextField();
+        textField8 = new com.miniproject.railwaysystem.Widgets.TextField();
+        Title = new javax.swing.JLabel();
+        backBtn = new com.miniproject.railwaysystem.Widgets.KButton();
+        Bg = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Railway Reservation System");
+        setIconImage(new javax.swing.ImageIcon("D:\\dbms\\RailwaySystem\\src\\main\\java\\com\\miniproject\\railwaysystem\\Assets\\TrainIcon.jpg").getImage());
+
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        ticInterface.setBackground(new java.awt.Color(255, 255, 255));
+        ticInterface.setForeground(new java.awt.Color(234, 68, 66));
+        ticInterface.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        PTable.setModel(this.PModel);
+        jScrollPane1.setViewportView(PTable);
+
+        ticInterface.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 260, 610, 150));
+
+        noTickets.setBackground(new java.awt.Color(0, 0, 0));
+        noTickets.setFont(new java.awt.Font("MV Boli", 0, 12)); // NOI18N
+        noTickets.setText("No of Passengers" + this.pcount);
+        ticInterface.add(noTickets, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 130, 140, 40));
+
+        totalAmt.setBackground(new java.awt.Color(0, 0, 0));
+        totalAmt.setFont(new java.awt.Font("MV Boli", 0, 12)); // NOI18N
+        totalAmt.setText("Total Amount : $" + this.total);
+        ticInterface.add(totalAmt, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 180, 140, 50));
+
+        TrainLabel.setEditable(false);
+        TrainLabel.setText(this.trainName);
+        TrainLabel.setLabelText("Train");
+        ticInterface.add(TrainLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 10, 240, -1));
+
+        BStatLabel.setEditable(false);
+        BStatLabel.setText(this.boardStat);
+        BStatLabel.setLabelText("Boarding Station");
+        ticInterface.add(BStatLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 60, 200, -1));
+
+        DestStatLabel.setEditable(false);
+        DestStatLabel.setText(this.destStat);
+        DestStatLabel.setLabelText("Destination Station");
+        ticInterface.add(DestStatLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 60, 210, 60));
+
+        JDateLabel.setEditable(false);
+        JDateLabel.setText(this.journeyDate);
+        JDateLabel.setLabelText("Journey Date");
+        ticInterface.add(JDateLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 190, 200, 60));
+
+        ClassLabel.setEditable(false);
+        ClassLabel.setText(this.className);
+        ClassLabel.setLabelText("Class Type");
+        ticInterface.add(ClassLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 190, 200, -1));
+
+        BTimeLabel.setEditable(false);
+        BTimeLabel.setText(this.boardTime);
+        BTimeLabel.setLabelText("Boarding Time");
+        ticInterface.add(BTimeLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 120, 200, -1));
+
+        DestTimeStat.setEditable(false);
+        DestTimeStat.setText(this.destTime);
+        DestTimeStat.setLabelText("Destination Time");
+        ticInterface.add(DestTimeStat, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 120, 210, -1));
+
+        textField8.setEditable(false);
+        textField8.setText(this.pnr);
+        textField8.setFont(new java.awt.Font("Agency FB", 0, 14)); // NOI18N
+        textField8.setLabelText("PNR");
+        ticInterface.add(textField8, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 70, 170, -1));
+
+        jPanel1.add(ticInterface, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 40, 710, 430));
+
+        Title.setFont(new java.awt.Font("Algerian", 0, 26)); // NOI18N
+        Title.setForeground(new java.awt.Color(255, 255, 0));
+        Title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Title.setText("PNR ENQUIRY");
+        jPanel1.add(Title, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 0, 320, 40));
+
+        backBtn.setBackground(new java.awt.Color(255, 102, 102));
+        backBtn.setText("<--");
+        backBtn.setkEndColor(new java.awt.Color(0, 0, 0));
+        backBtn.setkHoverEndColor(new java.awt.Color(204, 204, 204));
+        backBtn.setkHoverForeGround(new java.awt.Color(0, 0, 0));
+        backBtn.setkHoverStartColor(new java.awt.Color(204, 204, 204));
+        backBtn.setkStartColor(new java.awt.Color(102, 102, 102));
+        backBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backBtnActionPerformed(evt);
+            }
+        });
+        jPanel1.add(backBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 40, 20));
+
+        Bg.setIcon(new javax.swing.ImageIcon("D:\\dbms\\RailwaySystem\\src\\main\\java\\com\\miniproject\\railwaysystem\\Assets\\ChennaiCentral.jpg")); // NOI18N
+        jPanel1.add(Bg, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void backBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBtnActionPerformed
+        // TODO add your handling code here:
+        new MainPage(this.conn).setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_backBtnActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+
+        try {
+            /* Set the Nimbus look and feel */
+            //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+            /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+            * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
+            */
+            try {
+                for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                    if ("Nimbus".equals(info.getName())) {
+                        javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                        break;
+                    }
+                }
+            } catch (ClassNotFoundException ex) {
+                java.util.logging.Logger.getLogger(ShowTicket.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                java.util.logging.Logger.getLogger(ShowTicket.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                java.util.logging.Logger.getLogger(ShowTicket.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+                java.util.logging.Logger.getLogger(ShowTicket.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            }
+            //</editor-fold>
+            int pid = 11414;
+            Connection conn = null;
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection("jdbc:oracle:thin:@//192.168.56.1:1521/ORCL", "sham", "sham");
+            System.out.println("Connected to Oracle");
+            
+                    new ShowTicket(conn,pid).setVisible(true);
+               
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ShowTicket.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(ShowTicket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private com.miniproject.railwaysystem.Widgets.TextField BStatLabel;
+    private com.miniproject.railwaysystem.Widgets.TextField BTimeLabel;
+    private javax.swing.JLabel Bg;
+    private com.miniproject.railwaysystem.Widgets.TextField ClassLabel;
+    private com.miniproject.railwaysystem.Widgets.TextField DestStatLabel;
+    private com.miniproject.railwaysystem.Widgets.TextField DestTimeStat;
+    private com.miniproject.railwaysystem.Widgets.TextField JDateLabel;
+    private javax.swing.JTable PTable;
+    private javax.swing.JLabel Title;
+    private com.miniproject.railwaysystem.Widgets.TextField TrainLabel;
+    private com.miniproject.railwaysystem.Widgets.KButton backBtn;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel noTickets;
+    private com.miniproject.railwaysystem.Widgets.TextField textField8;
+    private javax.swing.JPanel ticInterface;
+    private javax.swing.JLabel totalAmt;
+    // End of variables declaration//GEN-END:variables
+
+    
+}
